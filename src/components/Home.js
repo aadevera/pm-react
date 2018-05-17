@@ -49,14 +49,11 @@ class Home extends Component {
             
             cookies.remove('auth-token')
             cookies.set ('auth-token', result.token, { path: '/',  maxAge: 60*120 } )
-            console.log('@/login')
-            console.log(cookies.get('auth-token'))
-            
-            
             this.setState({
                 isLogged: result.token,
                 userData: result.userData
             })
+            console.log(this.state.userData)
 
             this.props.history.push('/classes')
         } else {
@@ -100,14 +97,15 @@ class Home extends Component {
                                         </Link>
                                         <Link 
                                             onClick={this.setActiveTab.bind(this, 'profiletab')} 
-                                            className={"nav-item nav-link " + (this.state.activeTab === "profiletab"? "active" : "")}
-                                            to="/profile">Profile
-                                        </Link>
+                                            className={"nav-item nav-link " + (this.state.activeTab === "profiletab"? "active" : "")} 
+                                            to="/profile">Profile</Link>
                                         <Link 
                                             onClick={this.setActiveTab.bind(this, 'mailtab')} 
                                             className={"nav-item nav-link " + (this.state.activeTab === "mailtab"? "active" : "")} 
                                             to="/mail">Mail</Link>
-                                        <button onClick={ this.logout } className="btn btn-danger btn-md ml-auto" type="button">Log Out</button>
+                                        
+
+                                            <button onClick={ this.logout } className="btn btn-danger btn-md ml-auto" type="button">Log Out</button>
                                 </div>                          
                             ) 
                             : 

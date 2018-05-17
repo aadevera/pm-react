@@ -9,7 +9,7 @@ class Student extends Component {
             classId: '',
             userData: {},
             classData: {},
-            posts: []
+            studentsData: []
         }
     }
     async componentWillMount () {
@@ -28,12 +28,19 @@ class Student extends Component {
                             get_options)
 
             const result_findclass = await response_findclass.json()
+            console.log(result_findclass)
             if (!result_findclass.success) {
                 alert('Class does not Exists')
                 this.props.history.push('/')
             }
-            
             this.setState({ classData: result_findclass.data })
+            const response_findstudents = 
+                await fetch('http://localhost:8000/class/find-all-students/' + this.state.classData._id, 
+                            get_options)
+
+            const result_findstudents = await response_findstudents.json()
+            this.setState({studentsData: result_findstudents.data})
+            
         } catch (e) {
             throw new Error(e)
         }
@@ -60,10 +67,29 @@ class Student extends Component {
                     </nav>
                 </div>
                 <main className="col-sm-7 col-md-8">
-                    <h2>{this.state.classData.title + (this.state.userData.usertype ? ' Students' : ' Classmates')}</h2><hr />
-                    <div className="container-fluid">
-                        Students
-                    </div>
+                    <h2>{this.state.classData.title + " " + this.state.classData.section + (this.state.userData.usertype ? ' Students' : ' Classmates')}</h2><hr />
+                    {
+                        this.state.studentsData.map(student => {
+                            return this.state.userData._id === student._id ? 
+                            (
+                                
+                                <div className="card mt-1 bg-light" key={student._id}>
+                                    <div className="card-body">
+                                        <h6>{student.name}</h6>
+                                    </div>
+                                </div>
+                            )
+                            :
+                            (
+                                <div className="card mt-1" key={student._id}>
+                                    <div className="card-body">
+                                        <h6>{student.name}</h6>
+                                    </div>
+                                </div>
+                            )
+                            
+                        })
+                    }
                 </main>
             </div>
         );

@@ -20,8 +20,43 @@ class Classes extends Component {
         this.joinClass = this.joinClass.bind(this);
         this.teacherModal = this.teacherModal.bind(this);
         this.studentModal = this.studentModal.bind(this);
-        
+        this.deleteClass = this.deleteClass.bind(this);
+        this.unJoinClass = this.unJoinClass.bind(this)
     }
+    async deleteClass (classid) {   
+        const data = {
+            classid: classid
+        }
+        const response = await fetch ('http://localhost:8000/class/delete', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        const result = await response.json()
+        alert(result.message)
+
+        this.forceUpdate()
+    }
+    async unJoinClass (classid, userid) {
+        const data = {
+            classid: classid,
+            userid: userid
+        }
+        const response = await fetch ('http://localhost:8000/class/unjoin', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        const result = await response.json()
+        alert(result.message)
+
+        this.forceUpdate()
+
+    }   
     async componentWillMount () {
         try {
             const cookies = new Cookies();
@@ -90,7 +125,7 @@ class Classes extends Component {
         try {
             const response = await fetch(URL, post_options)
             const result = await response.json()
-            
+            if (!result.success) alert(result.message)
         } catch (e) {
             
             throw new Error (e)
@@ -115,6 +150,7 @@ class Classes extends Component {
         try {
             const response = await fetch(URL, post_options)
             const result = await response.json()
+            if (!result.success) alert(result.message)
         } catch (e) {
             throw new Error (e)
         }
@@ -240,7 +276,22 @@ class Classes extends Component {
                         return (
                             <div className="card col-sm-4 float-left" key={item._id}>
                                 <div className="card-body">
+                                    { this.state.userType? 
+                                        (
+                                            <button type="button" className="close" onClick={() => this.deleteClass(item._id)}>
+                                                <span >&times;</span>
+                                            </button>
+                                        ) 
+                                        : 
+                                        (
+                                            <button type="button" className="close" onClick={() => this.unJoinClass(item._id, this.state.userId)}>
+                                                <span >&times;</span>
+                                            </button>
+                                        )
+                                    }
+                                    
                                     <h5 className="card-title">{item.title + " " + item.section}</h5>
+                                    
                                     { this.state.userType ? 
                                         (
                                             <div>

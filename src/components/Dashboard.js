@@ -16,8 +16,115 @@ class Dashboard extends Component {
         this.renderAddPostModal = this.renderAddPostModal.bind(this);
         this.createPost = this.createPost.bind(this)
         this.addComment = this.addComment.bind(this)
+        this.changeSettings = this.changeSettings.bind(this)
+        this.deleteComment = this.deleteComment.bind(this)
+        this.deletePost = this.deletePost.bind(this)
+    }
+    async deletePost (postid) {
+        const data = {
+            classid: this.state.classData._id,
+            postid: postid
+        }
+        const response = await fetch ('http://localhost:8000/post/delete', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        const result = await response.json()
+        alert(result.message)
+
+        const get_options = { headers: { 'Content-Type': 'application/json' }}
+        const response_findpost = 
+            await fetch ('http://localhost:8000/post/find-all/' + this.state.classData._id, get_options)
+        const result_findpost = await response_findpost.json()
+        console.log('postsdata done')
+        var getComments = result_findpost.data.map (async post => {
+            var response = await fetch ('http://localhost:8000/comment/find-all/' + post._id)
+            var result = await response.json()
+            post.comments = result.data
+            return post
+        })
+        
+        var postWithComments = await Promise.all(getComments)
+        
+        this.setState({ posts: postWithComments })
+    }
+    async deleteComment (commentid, postid) {
+        const data = {
+            commentid: commentid,
+            postid: postid
+        }
+        const response = await fetch ('http://localhost:8000/comment/delete', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        const result = await response.json()
+        alert(result.message)
+
+        const get_options = { headers: { 'Content-Type': 'application/json' }}
+        const response_findpost = 
+            await fetch ('http://localhost:8000/post/find-all/' + this.state.classData._id, get_options)
+        const result_findpost = await response_findpost.json()
+        console.log('postsdata done')
+        var getComments = result_findpost.data.map (async post => {
+            var response = await fetch ('http://localhost:8000/comment/find-all/' + post._id)
+            var result = await response.json()
+            post.comments = result.data
+            return post
+        })
+        
+        var postWithComments = await Promise.all(getComments)
+        
+        this.setState({ posts: postWithComments })
+    }
+    async changeSettings (e) {
+        e.preventDefault()
+        const data = {
+            classid: this.state.classData._id,
+            title: document.getElementById('changetitle').value,
+            section: document.getElementById('changesection').value,
+            setting: document.getElementById('changesettings').value === 'setting1' ? 1 :
+                        document.getElementById('changesettings').value === 'setting2'? 2 : 3
+        }
+        const response = await fetch('http://localhost:8000/class/edit', 
+            {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        const result = await response.json()
+        
+        if (result.success) alert(result.message)
+        const get_options = { headers: { 'Content-Type': 'application/json' }}
+        const response_findclass = 
+                await fetch('http://localhost:8000/class/find-by-id/' + this.props.match.params.classid, get_options)
+            const result_findclass = await response_findclass.json()
+            this.setState({ classData: result_findclass.data })
+        
+        const response_findpost = 
+            await fetch ('http://localhost:8000/post/find-all/' + this.state.classData._id, get_options)
+        const result_findpost = await response_findpost.json()
+        console.log('postsdata done')
+        var getComments = result_findpost.data.map (async post => {
+            var response = await fetch ('http://localhost:8000/comment/find-all/' + post._id)
+            var result = await response.json()
+            post.comments = result.data
+            return post
+        })
+        
+        var postWithComments = await Promise.all(getComments)
+        
+        this.setState({ posts: postWithComments })
     }
     async addComment (postid) {
+        
         const data = {
             author: this.state.userData._id,
             authorname: this.state.userData.name,
@@ -81,16 +188,15 @@ class Dashboard extends Component {
             const response_getdata = await fetch('http://localhost:8000/getdata', tok_options)
             const result_getdata = await response_getdata.json()
             this.setState({ userData: result_getdata.data })
-            console.log('userdata done')
+            
             const response_findclass = 
                 await fetch('http://localhost:8000/class/find-by-id/' + this.props.match.params.classid, get_options)
             const result_findclass = await response_findclass.json()
             this.setState({ classData: result_findclass.data })
-            console.log('classdata done')
+            
             const response_findpost = 
                 await fetch ('http://localhost:8000/post/find-all/' + this.state.classData._id, get_options)
             const result_findpost = await response_findpost.json()
-            console.log('postsdata done')
             var getComments = result_findpost.data.map (async post => {
                 var response = await fetch ('http://localhost:8000/comment/find-all/' + post._id)
                 var result = await response.json()
@@ -99,7 +205,7 @@ class Dashboard extends Component {
             })
             
             var postWithComments = await Promise.all(getComments)
-            console.log(postWithComments)
+            
             this.setState({ posts: postWithComments })
 
         } catch (e) {
@@ -144,6 +250,50 @@ class Dashboard extends Component {
         )
         
     }
+
+    renderClassSettingsModal() {
+        return (
+            <div className="modal fade" id="settingsmodal" tabIndex="-1" role="dialog" >
+                <div className="modal-dialog modal-dialog-centered" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Class Settings</h5>
+                        </div>
+                        <form onSubmit={this.changeSettings}>
+                            <div className="modal-body">
+                                <div className="form-group">
+                                    <label htmlFor="changetitle">Class Title</label>
+                                    <input type="text" className="form-control" placeholder={this.state.classData.title} id="changetitle" required/>
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group col-sm-3">
+                                        <label htmlFor="changesection">Class Section</label>
+                                        <input type="text" className="form-control" placeholder={this.state.classData.section} id="changesection" required/>
+                                    </div>
+                                    <div className="form-group col-sm-9">
+                                        <label htmlFor="changesettings">Class Settings</label>
+                                        <select className="form-control" id="changesettings">
+                                            <option value="setting1">Students can Post and Comment</option>
+                                            <option value="setting2">Students can only Comment</option>
+                                            <option value="setting3">Students cannot Post and Comment</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                
+                                
+                                
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" className="btn btn-primary">Save Settings</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        )
+    }
     render() {
         if (!this.state.isLogged) {
             return <Redirect to='/' />
@@ -166,24 +316,65 @@ class Dashboard extends Component {
                     </nav>
                 </div>
                 <main className="col-sm-7 col-md-8">
-                    <h2>{this.state.classData.title}</h2><hr />
+                    
+                    <div className="row ml-2">
+                        <h2 className="">{this.state.classData.title + " " + this.state.classData.section}</h2>
+                        {
+                            this.state.userData.usertype === 1 ? 
+                            (
+                                <button className='btn btn-sm ml-auto' data-toggle='modal' data-target='#settingsmodal'>
+                                Edit Class
+                                </button>
+                            ) 
+                            : 
+                            (<div></div>)
+                        }
+                    </div>
+                    
+                    <hr />
                     {
                         this.state.posts.map((post) => {
                             return (
-                                <div className="row ml-2 mb-5" key={post._id}>
-                                    <div className="media">
+                                <div className="row ml-2 mb-5 bg-light p-3 border border-dark rounded" key={post._id} >
+                                    <div className="media w-100">
                                         <div className="media-body">
-                                            <h5 className="mt-0">{post.authorname}  </h5><p className= "small"> { "Posted: " + post.timestamp }</p> 
+                                            {
+                                                this.state.userData._id === post.author || this.state.userData.usertype === 1? 
+                                                    (
+                                                        <button onClick={()=>this.deletePost(post._id)} type="button" className="close">
+                                                            <span >&times;</span>
+                                                        </button>) 
+                                                    : 
+                                                    (
+                                                        <div></div>
+                                                    )
+                                            }
+                                            
+                                            <h5 className="mt-0">{post.authorname}  </h5><p className= "small"> { "At " + post.timestamp + " Posted: "}</p> 
                                             <p>{post.content}</p>
+                                            <hr/>
+                                            <small className="mt-0">Comments ({post.comments.length})</small>
                                             {   
                                                 
                                                 post.comments.map ((comment => {
                                                     return (
                                                         <div key={comment._id} className="media mt-2 pl-5">
                                                             <div className="media-body">
+                                                                {
+                                                                    this.state.userData._id === post.author || this.state.userData.usertype === 1? 
+                                                                        (
+                                                                            <button type="button" className="close" onClick={() => this.deleteComment(comment._id, post._id)}>
+                                                                                <span >&times;</span>
+                                                                            </button>) 
+                                                                        : 
+                                                                        (
+                                                                            <div></div>
+                                                                        )
+                                                                }
+                                                                
                                                                 <h6 className="mt-0">{comment.authorname}</h6>
-                                                                <p>{comment.timestamp}</p>
-                                                                <small>{comment.content}</small>
+                                                                <small className="mt-0">{"At " + comment.timestamp + " Commented: "}</small>
+                                                                <p>{comment.content}</p>
                                                             </div>
                                                         </div>
                                                     )
@@ -192,27 +383,26 @@ class Dashboard extends Component {
                                                 
 
                                             }
+                                            <hr/>
                                         </div>
+                                        
                                     </div>
                                     { this.state.userData.usertype === 1 || this.state.classData.setting === (1||2) ?
                                         (  
-                                            <div className="mt-4 w-100">
-                                                <div className="row">
-                                                    <div className="col-sm-3">
-                                                        <p>Comments {"(" +post.comments.length+ ")"}</p>
-                                                    </div>
-
-                                                    <div className="col-sm-7">
-                                                        <input type="text" id={post._id} className="form-control ds-input" placeholder="Comment ..." required />
-                                                    </div>
-                                                    <div className="col-sm-1">
-                                                        <button onClick={() => this.addComment(post._id)} className="btn btn-sm btn-outline-secondary" type="button">Comment</button>
-                                                    </div>
+                                            
+                                            <div className="media w-100 mt-2" >
+                                                <div className="col-md-10 col-sm-8 mx-auto">
+                                                    <input type="text" id={post._id} className="form-control form-control-sm" placeholder="Comment ..." required />
                                                 </div>
+                                                <div className="col-md-2 col-sm-2 mx-auto"> 
+                                                    <button  onClick={() => this.addComment(post._id)} className="btn btn-sm btn-outline-secondary" type="button">Comment</button>
+                                                </div>
+                                                
+                                                
                                             </div> 
                                         ) 
                                         : 
-                                        (<div className="mt-4 w-100">Comments Have been Disabled</div>) 
+                                        (<div className=" w-100">Comments Have been Disabled</div>) 
                                     }
                                     
                                 </div>
@@ -221,6 +411,7 @@ class Dashboard extends Component {
                     }
                     {this.renderAddPostButton()}
                     {this.state.userData.usertype === 1 || this.state.classData.setting === 1 ? this.renderAddPostModal() : <div></div>}
+                    {this.state.userData.usertype === 1 ? this.renderClassSettingsModal(): <div></div>}
                 </main>
             </div>
         );
