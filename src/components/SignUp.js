@@ -1,25 +1,31 @@
 import React, { Component } from 'react';
-import  { Redirect } from 'react-router-dom'
+import  { Redirect, withRouter } from 'react-router-dom'
 
 class SignUp extends Component {
-    constructor () {
-        super();
+    constructor (props) {
+        super(props);
         this.state = {
-            user: localStorage.getItem('name')
+            isLogged: localStorage.getItem('token'),
+            email: '',
+            name: '',
+            password: '',
+            usertype: ''
         }
         this.sign_up = this.sign_up.bind(this);
     }
+    // TODO: SET-UP ONCHANGE HANDLERS FOR ALL INPUT FIELDS
     sign_up (e) {
         e.preventDefault()
+        
         const data = {
             email: document.getElementById('signupemail').value,
             name: document.getElementById('signupname').value,
             password: document.getElementById('signuppass').value,
-            usertype: document.getElementById('signuprole').value === 'teacher' ? 1 : 0,
+            usertype: document.getElementById('signuprole').value === 'Teacher' ? 1 : 0,
             classes: [],
             messages: []
         }
-        fetch('http://localhost:8000/user/add',
+        fetch('http://localhost:8000/signup',
             {
                 method: 'POST',
                 body: JSON.stringify(data),
@@ -35,13 +41,13 @@ class SignUp extends Component {
             })
     }
     render() {
-        if(this.state.user) {
+        if(this.state.isLogged) {
             return <Redirect to='/classes' />
         }
         return (
             <div>
                 <div className="row"> 
-                    <div className="col-auto">
+                    <div className="col-md-4 offset-md-4 col-sm-6 offset-sm-3">
                         <h1 className="pt-2">Sign Up</h1>
                         <hr/>
                         <form onSubmit={this.sign_up} >
@@ -74,4 +80,4 @@ class SignUp extends Component {
     }
 }
 
-export default SignUp;
+export default withRouter(SignUp);

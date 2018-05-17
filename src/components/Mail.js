@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
-import  { Redirect } from 'react-router-dom'
+import  { Redirect, withRouter } from 'react-router-dom'
 class Mail extends Component {
     constructor () {
         super();
 
         this.state = {
-            user: localStorage.getItem('name')
+            isLogged: localStorage.getItem('token')
         }
     }
     render() {
-        if (!this.state.user) {
+        if (!this.state.isLogged) {
             return <Redirect to='/' />
         }
         return (
@@ -20,4 +20,4 @@ class Mail extends Component {
     }
 }
 
-export default Mail;
+export default withRouter(Mail);
