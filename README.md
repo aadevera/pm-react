@@ -1,7 +1,6 @@
+# Project Moodle: A Project Under CMSC100 using MERN Stack
 # pm-react
-Project Moodle: A Project Under CMSC100 using MERN Stack
-
-Front-end using ReactJS
+Front-end development using ReactJS
 
 ## Setting Up
 1. `npm install`
